@@ -15,12 +15,15 @@ def applyForIPO():
     #write logic to click on IPOs
 
 def showCurrentIssue():
+    #TODO: separate company-name by tooltip=Share Type for IPO and non-IPO (Right Share / Reserved Share)
     # this prints the list of IPOs
     click(Link('Current Issue'))
 
     #gets the DOM elements for currentIssues 
     currentIssues = find_all(S(".company-name > span[tooltip='Company Name']"))
+    shareType = find_all(S(".company-name > span.share-of-type"))
     currentIssuesList = [cell.web_element.text for cell in currentIssues]
-    print(currentIssues)
+    shareTypeList = [cell.web_element.text for cell in shareType]
+    print(shareTypeList)
     print(currentIssuesList)
     

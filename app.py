@@ -7,5 +7,6 @@ username="01988350"
 func.login(username, password)
 func.applyForIPO()
 func.showCurrentIssue()
+func.logout()
 
 
