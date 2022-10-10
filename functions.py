@@ -1,10 +1,12 @@
+from time import sleep
 from helium import *
+import json
 
-def login(username, password):
+def login(username, password, dpNumber):
     start_firefox('https://meroshare.cdsc.com.np')
     click(S("@selectBranch"))
     dp = S(".select2-search__field")
-    write('10600', into=dp)
+    write(dpNumber, into=dp)
     press(ENTER)
     write(username, into='username')
     write(password ,into='password')
@@ -26,4 +28,24 @@ def showCurrentIssue():
     shareTypeList = [cell.web_element.text for cell in shareType]
     print(shareTypeList)
     print(currentIssuesList)
+
+def createCredentials():
+    username = input("Enter the username ")
+    password = input("Enter the password ")
+    dpNumber = input("Enter the dpNumber (bank code) ")
+    name = input("Enter the name of the person ")
+    return [username, password, dpNumber, name]
     
+def updateJSON(fileName):
+    with open(fileName, "r+") as credentials:
+        data = json.load(credentials)
+
+        mydict = {}
+        key = "cred" + str(len(data) + 1)
+        value = createCredentials()
+        mydict = {key:value}
+        data.append(mydict)
+        credentials.seek(0)
+        json.dump(data, credentials, indent=4)
+    
+
