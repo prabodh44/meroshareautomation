@@ -14,7 +14,21 @@ def login(username, password, dpNumber):
 
 def applyForIPO():
     click(Link('My ASBA'))
+    click(Link('Apply for Issue'))
     #write logic to click on IPOs
+
+    # click(S(".company-name > span[tooltip='Company Name']")) you can click like this also
+    # currentIssues = find_all(S(".company-name > span[tooltip='Company Name']"))
+    # shareType = find_all(S(".company-name > span.share-of-type"))
+    # currentIssuesList = [cell.web_element.text for cell in currentIssues]
+    # shareTypeList = [cell.web_element.text for cell in shareType]
+    # print(shareTypeList)
+    # print(currentIssuesList)
+    click(Button('Apply'))
+    click(S("#selectBank"))
+
+
+    
 
 def showCurrentIssue():
     #TODO: separate company-name by tooltip=Share Type for IPO and non-IPO (Right Share / Reserved Share)
