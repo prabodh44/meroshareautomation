@@ -22,8 +22,8 @@ locationInput = S("@search_location")
 write(searchLocation, into=locationInput)
 
 
-# categoryInput = S(".select2-search__field")
-# write(searchCategory, into=categoryInput)
+categoryInput = S(".select2-search__field")
+write(searchCategory, into=categoryInput)
 click(Button('Search Jobs'))
 
 sleep(3) # wait 3 seconds before scraping
@@ -42,17 +42,46 @@ soup = BeautifulSoup(DOMTree, "html.parser")
 jobList = soup.find('ul', class_="job_listings")
 jobNames = [jobName.string for jobName in jobList.find_all('h3')]
 jobCompanies = [jobCompany.string for jobCompany in jobList.find_all('strong')]
-jobTypes = [jobType.string for jobType in jobList.find_all('li', class_='job-type')]
-# deadlines = [deadline.string for deadline in jobList.find_all('li', class_='application-deadline  ')] -- cannot be printed
+# added to class full-time to display only full time jobs and filter out fresher jobs
+jobTypes = [jobType.string for jobType in jobList.find_all('li', class_='job-type full-time')]
+# deadlines = [deadline for deadline in jobList.find_all('li', class_="application-deadline expiring expired").contents[1]]
 jobPostedDates = [jobPostedDate['datetime'] for jobPostedDate in jobList.find_all('time')]
+jobLinks = [jobLink['href'] for jobLink in jobList.find_all('a')]
 
+
+# deadlines = ["None" if deadline.find('label').nextSibling is None else deadline.find('label').nextSibling for deadline in jobList.find_all('li', class_='application-deadline expiring expired')]
+# print(deadlines)
+deadlines = []
+jobStatuses = []
+for deadline in jobList.find_all('ul', class_='meta'):
+    jobDeadline = deadline.find('li', class_='application-deadline expiring expired')
+    if jobDeadline is not None:
+        deadlines.append(jobDeadline.find('label').nextSibling)
+        jobStatuses.append(jobDeadline.find('label').string)
+    else:
+        deadlines.append('None')
+        jobStatuses.append('None')    
+
+print(len(jobNames))
+print(jobTypes)
+print(len(jobCompanies))
+print(len(jobLinks))
+print(len(jobStatuses))
+print(len(jobPostedDates))
+print(len(deadlines))
 # create a dataframe to store the data
 df = pd.DataFrame({'Job Names' : jobNames,
       'Job Companies' : jobCompanies,
       'Job Type': jobTypes,
-      'Job Posted Date': jobPostedDates})
+      'Job Link': jobLinks,
+      'Job Status' : jobStatuses,
+      'Job Posted Date': jobPostedDates,
+      'Job Deadline': deadlines})
 
 print(df)
+
+#create an excel file to put the data
+df.to_excel('scrapped_data.xlsx')
 
 
 
