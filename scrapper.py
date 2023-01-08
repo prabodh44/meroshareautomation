@@ -9,12 +9,12 @@ import json
 
 URL = "https://www.merorojgari.com/"
 # searchTerm = input("enter the search term ")
-searchTerm = "dental hygienist"
+searchTerm = "Human Resource"
 searchLocation = "kathmandu"
-searchCategory = "government"
+searchCategory = "Information Technology"
 
 
-driver = start_firefox(URL, headless=True)
+driver = start_firefox(URL)
 searchInput = S("@search_keywords")
 write(searchTerm, into=searchInput)
 
@@ -22,14 +22,15 @@ locationInput = S("@search_location")
 write(searchLocation, into=locationInput)
 
 
-categoryInput = S(".select2-search__field")
-write(searchCategory, into=categoryInput)
+# categoryInput = S(".select2-search__field")
+# write(searchCategory, into=categoryInput)
 click(Button('Search Jobs'))
 
 sleep(3) # wait 3 seconds before scraping
 
 
 DOMTree = driver.execute_script("return document.body.outerHTML;")
+
 
 
 # scrap data using BeautifulSoup
@@ -39,49 +40,74 @@ DOMTree = driver.execute_script("return document.body.outerHTML;")
 # scrap data using BeautifulSoup
 # headers: jobName, jobCompany, jobType,  applicationDeadline, jobDate
 soup = BeautifulSoup(DOMTree, "html.parser")
-jobList = soup.find('ul', class_="job_listings")
-jobNames = [jobName.string for jobName in jobList.find_all('h3')]
-jobCompanies = [jobCompany.string for jobCompany in jobList.find_all('strong')]
-# added to class full-time to display only full time jobs and filter out fresher jobs
-jobTypes = [jobType.string for jobType in jobList.find_all('li', class_='job-type full-time')]
-# deadlines = [deadline for deadline in jobList.find_all('li', class_="application-deadline expiring expired").contents[1]]
-jobPostedDates = [jobPostedDate['datetime'] for jobPostedDate in jobList.find_all('time')]
-jobLinks = [jobLink['href'] for jobLink in jobList.find_all('a')]
+jobList = soup.find_all('li', class_="job_listing")
+# print(jobList)
 
 
-# deadlines = ["None" if deadline.find('label').nextSibling is None else deadline.find('label').nextSibling for deadline in jobList.find_all('li', class_='application-deadline expiring expired')]
-# print(deadlines)
-deadlines = []
-jobStatuses = []
-for deadline in jobList.find_all('ul', class_='meta'):
-    jobDeadline = deadline.find('li', class_='application-deadline expiring expired')
-    if jobDeadline is not None:
-        deadlines.append(jobDeadline.find('label').nextSibling)
-        jobStatuses.append(jobDeadline.find('label').string)
-    else:
-        deadlines.append('None')
-        jobStatuses.append('None')    
 
-print(len(jobNames))
-print(jobTypes)
-print(len(jobCompanies))
-print(len(jobLinks))
-print(len(jobStatuses))
-print(len(jobPostedDates))
-print(len(deadlines))
+# Create a dataframe
+df = pd.DataFrame({'Job Names' : [''],
+      'Job Companies' : [''],
+      'Job Type': [''],
+      'Job Link': [''],
+      'Job Status' : [''],
+      'Job Posted Date': [''],
+      'Job Deadline': ['']})
+
+for job in jobList:
+        jobName = job.find('h3').text
+        jobCompany = job.find('strong').text
+        jobType = job.find('li', class_='job-type full-time').text
+
+        date = job.find('time')
+        jobPostedDate = date['datetime']
+
+        link = job.find('a')
+        jobLink = link['href']
+
+        try:
+            jobStatus = job.find('label').text
+            jobDeadline = job.find('label').nextSibling
+        except:
+            jobStatus = 'N/A'
+            jobDeadline = 'N/A'
+
+
+
+        df = df.append({'Job Names' : jobName,
+                'Job Companies' : jobCompany,
+                'Job Type': jobType,
+                'Job Link': link,
+                'Job Status' : jobStatus,
+                'Job Posted Date': jobPostedDate,
+                'Job Deadline': jobDeadline}, ignore_index=True)
+
+        
+
+
+# jobNames = [jobName.string for jobName in jobList.find_all('h3')]
+# jobCompanies = [jobCompany.string for jobCompany in jobList.find_all('strong')]
+# # added to class full-time to display only full time jobs and filter out fresher jobs
+# jobTypes = [jobType.string for jobType in jobList.find_all('li', class_='job-type full-time')]
+# jobPostedDates = [jobPostedDate['datetime'] for jobPostedDate in jobList.find_all('time')]
+# jobLinks = [jobLink['href'] for jobLink in jobList.find_all('a')]
+
+
+
+
+
+
+
+#  deadlines = ["None" if deadline.find('label').nextSibling is None else deadline.find('label').nextSibling for deadline in jobList.find_all('li', class_='application-deadline expiring expired')]
+# # print(deadlines)
+
 # create a dataframe to store the data
-df = pd.DataFrame({'Job Names' : jobNames,
-      'Job Companies' : jobCompanies,
-      'Job Type': jobTypes,
-      'Job Link': jobLinks,
-      'Job Status' : jobStatuses,
-      'Job Posted Date': jobPostedDates,
-      'Job Deadline': deadlines})
+
 
 print(df)
 
 #create an excel file to put the data
-df.to_excel('scrapped_data.xlsx')
+df.to_excel('webscrapper.xlsx')
 
 
 
@@ -92,7 +118,7 @@ df.to_excel('scrapped_data.xlsx')
 
 
 
-kill_browser()
+# kill_browser()
 
 
 
